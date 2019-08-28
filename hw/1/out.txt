@@ -1,0 +1,10 @@
+Test for 100 numbers passed.
+Test for 90 numbers passed.
+Test for 80 numbers passed.
+Test for 70 numbers passed.
+Test for 60 numbers passed.
+Test for 50 numbers passed.
+Test for 40 numbers passed.
+Test for 30 numbers passed.
+Test for 20 numbers passed.
+Test for 10 numbers passed.
