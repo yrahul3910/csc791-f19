@@ -1,10 +1,7 @@
-Test for 100 numbers passed.
-Test for 90 numbers passed.
-Test for 80 numbers passed.
-Test for 70 numbers passed.
-Test for 60 numbers passed.
-Test for 50 numbers passed.
-Test for 40 numbers passed.
-Test for 30 numbers passed.
-Test for 20 numbers passed.
-Test for 10 numbers passed.
+After adding numbers:
+mu = [47.3 47.6 52.7 53.65 53.48 52.32 50.03 48.74 49.3 49.05 ]
+sd = [32.63 27.77 26.88 27.93 28.82 28.18 29.04 28.03 27.88 27.7 ]
+
+After removing numbers:
+mu = [47.3 47.6 52.7 53.65 53.48 52.32 50.03 48.74 49.3 49.05 ]
+sd = [32.63 27.77 26.88 27.93 28.82 28.18 29.04 28.03 27.88 27.7 ]
