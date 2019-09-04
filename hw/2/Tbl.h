@@ -22,6 +22,9 @@ protected:
     std::string text;
 
 public:
+    virtual void operator+=(double val) {}
+    virtual void operator+=(std::string val) {}
+
     Col()
     {
         col = ++count;
@@ -81,7 +84,12 @@ public:
      */
     void operator+=(double val)
     {
+        // Workaround for the case where ? is given (and replaced by a 0).
+        if (val == 0)
+            return;
+
         n++;
+
         double delta = val - mean;
         mean += delta / n;
         M2 += delta * (val - mean);
@@ -124,7 +132,7 @@ public:
 class Tbl
 {
     std::vector<Row> rows;
-    std::vector<Num> cols;
+    std::vector<Col> cols;
 
     std::vector<std::vector<double>> table;
     std::vector<std::string> headers;
@@ -201,9 +209,13 @@ public:
             // Read all tokens in the line, but discard commas and spacing
             for (auto it = tok.begin(); it != tok.end(); it++)
             {
+                double val;
+
+                // If ?, we replace it with 0 for now
                 if (*it == "?")
-                    continue;
-                double val = std::stod(*it);
+                    val = 0;
+                else
+                    val = std::stod(*it);
                 values.push_back(val);
             }
 
