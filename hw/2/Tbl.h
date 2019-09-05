@@ -9,6 +9,7 @@
 #include <fstream>
 #include <numeric>
 #include <sstream>
+#include <memory>
 #include <boost/tokenizer.hpp>
 #include <experimental/iterator>
 #include <string>
@@ -24,6 +25,7 @@ protected:
 public:
     virtual void operator+=(double val) {}
     virtual void operator+=(std::string val) {}
+    virtual void print() {}
 
     Col()
     {
@@ -51,6 +53,7 @@ public:
         mean = 0;
         n = 0;
         M2 = 0;
+        col = ++count;
     }
 
     Num(std::string t)
@@ -117,6 +120,27 @@ public:
             M2 -= delta * (val - mean);
         }
     }
+
+    void print()
+    {
+        std::cout << "|  |  ";
+        std::cout << "col: " << col << "\n";
+
+        std::cout << "|  |  ";
+        std::cout << "m2: " << M2 << "\n";
+
+        std::cout << "|  |  ";
+        std::cout << "mu: " << mean << "\n";
+
+        std::cout << "|  |  ";
+        std::cout << "sd: " << std::sqrt(get_var()) << "\n";
+
+        std::cout << "|  |  ";
+        std::cout << "n: " << n << "\n";
+
+        std::cout << "|  |  ";
+        std::cout << "text: " << text << "\n";
+    }
 };
 
 class Row
@@ -127,12 +151,29 @@ class Row
 
 public:
     Row(std::vector<double> v) : cells(v) {}
+    void print()
+    {
+        std::cout << "|  |  cells\n";
+        for (int i = 0; i < cells.size(); i++)
+        {
+            std::cout << "|  |  |  " << i + 1 << ": " << cells[i] << "\n";
+        }
+
+        std::cout << "|  |  cooked\n";
+        for (int i = 0; i < cooked.size(); i++)
+        {
+            std::cout << "|  |  |  " << i + 1 << ": " << cooked[i] << "\n";
+        }
+
+        std::cout << "|  |  dom: " << dom << "\n";
+    }
 };
 
 class Tbl
 {
     std::vector<Row> rows;
-    std::vector<Col> cols;
+    // from https://stackoverflow.com/a/8777747
+    std::vector<std::unique_ptr<Col>> cols;
 
     std::vector<std::vector<double>> table;
     std::vector<std::string> headers;
@@ -180,10 +221,6 @@ public:
                 break;
             }
         }
-
-        // Build the column headers
-        for (std::string x : headers)
-            cols.push_back(Num(x));
 
         // Check for EOF
         // In an ideal-world, we wouldn't have to idiot-proof software to this extent, good grief.
@@ -270,45 +307,32 @@ public:
         {
             // We don't need to check for the header containing ? here
             // since we've removed those columns and headers already.
-            cols.push_back(Num(x));
+            cols.emplace_back(new Num(x));
         }
 
         // Populate values
         for (int i = 0; i < table.size(); i++)
         {
             for (int j = 0; j < table[0].size(); j++)
-                cols[j] += table[i][j];
+                *(cols[j]) += table[i][j];
         }
     }
 
     void dump()
     {
-        /*
-        // Part 1: print list of lists representation
-        for (std::vector<double> row : table) {
-            // Uses the C++17 experimental ostream_joiner
-            std::copy(row.begin(), 
-                      row.end(),
-                      std::experimental::make_ostream_joiner(std::cout, ", "));
-            std::cout << std::endl;
-        }
-        */
+        std::cout << "t.cols\n";
 
-        // Part 2
-        // First print the headers
-        std::copy(headers.begin(),
-                  headers.end(),
-                  std::experimental::make_ostream_joiner(std::cout, ", "));
-        std::cout << std::endl;
-
-        // And now the table
-        for (std::vector<double> row : table)
+        for (int i = 0; i < cols.size(); i++)
         {
-            // Uses the C++17 experimental ostream_joiner
-            std::copy(row.begin(),
-                      row.end(),
-                      std::experimental::make_ostream_joiner(std::cout, ", "));
-            std::cout << std::endl;
+            std::cout << "|  " << i + 1 << "\n";
+            cols[i]->print();
+        }
+
+        std::cout << "t.rows\n";
+        for (int i = 0; i < rows.size(); i++)
+        {
+            std::cout << "|  " << i + 1 << "\n";
+            rows[i].print();
         }
     }
 };
