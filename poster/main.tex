@@ -19,15 +19,14 @@ Can we build accurate ML systems that are also interpretable? This poster summar
 \maketitle
 \footnotetext{Toshiki Mori and Naoshi Uchihira. Balancing the trade-off between accuracy and interpretability in software defect prediction. Empirical Software Engineering, 24(2):779–825, 2019.}
 \section{Introduction}
-Recently, interpretability is becoming more important in machine learning \cite{Ribeiro2016} in several domains including healthcare, where computational models cannot be blindly trusted without clear reasoning behind decisions. However, it has been observed that there is in general a trade-off between interpretability of models and accuracy, and the proper balance may be different in each domain.
 
 Software engineering is one of the domains where machine learning could potentially be useful. Among other use cases, machine learning techniques have been extensively applied in software defect prediction \cite{malhotra2015systematic}. This paper outlines a novel classification model that first builds an ensemble of Naive Bayes classifiers and then creates a linear approximation, with the intention that the first step improves accuracy, and the second step improves interpretability.
 
 We aim to answer the following research questions:
 \begin{enumerate}
-	\item \textbf{How accurate are the current predictors?} To compare the accuracy of SNB with other classifiers, we use multiple k-fold cross-validation and a double Scott-Knott test \cite{jelihovschi2014scottknott}.
-	\item \textbf{How do we assess the interpretability of classifiers?} We use a qualitative assessment based on \cite{lipton2016mythos}, which is comprised of model transparency, component transparency, and algorithmic transparency.
-	\item \textbf{How can we balance the trade-off between accuracy and interpretability?} To analyze this, we combine the results measuring accuracy and interpretability. Our findings confirm the general assumption that there is a trade-off between the two; nevertheless, SNB gives balanced outputs that satisfy both criteria.
+	\item \textbf{How accurate are the current predictors?}
+	\item \textbf{How do we assess the interpretability of classifiers?}
+	\item \textbf{How can we balance the trade-off between accuracy and interpretability?}
 \end{enumerate}
 
 \section{Method}
@@ -57,7 +56,7 @@ W(X) = W_0 + \sum W_i(x_i)
 
 Each term here is called a weight of evidence. A positive $W_i(x_i)$ indicates that the state of $x_i$ is evidence in favor of the hypothesis that $y=1$. The total sum of the weights of evidence gives a raw score $W(X)$, a higher value indicating a higher posterior likelihood that $y=1$.
 
-There are some issues with the standard Naive Bayes. First is the issue of cases where a dependent variable value and an independent variable value never occur, resulting in an indefinite weight of evidence. This can be fixed by adding a small sample correction to all likelihoods. This is called Laplace smoothing. The second issue is with numeric values. This can be solved by assuming a prior distribution on that independent variable and using it in the posterior likelihood expression. The third issue is with post-processing of the raw score. Class membership probability estimates can be obtained by sigmoid calibration of the raw scores:
+There are some issues with the standard Naive Bayes. One major issue is with post-processing of the raw score. Class membership probability estimates can be obtained by sigmoid calibration of the raw scores:
 
 \begin{equation}
 p_{nb}(X) = \sigma(c_0 + c_1 W(X)) = \frac{1}{1 + \exp(-(c_0 + c_1 W(X)))}
@@ -78,13 +77,7 @@ Creating ensembles can be done in several ways involving random selection of fea
 Figure \ref{fig:1} shows the algorithm to create a Naive Bayes ensemble.
 
 \subsection{Superposed Naive Bayes}
-We then create a single Naive Bayes model by superposing the different models, weighted by the weights of evidence. Figure \ref{fig:2} shows an example.
-
-\begin{figure}
-\includegraphics[width=0.45\textwidth]{fig1.png}
-\caption{Superposing Naive Bayes ensemble}
-\label{fig:2}
-\end{figure}
+We then create a single Naive Bayes model by superposing the different models, weighted by the weights of evidence. 
 
 From \eqref{eq:3} and \eqref{eq:4}, the output of the Naive Bayes ensemble is
 
@@ -104,11 +97,39 @@ which is of the form $a_t + b_t W^{(t)}(X)$.
 \section{Experimental Settings}
 We use 13 datasets from two sources: a cleaned version of the NASA MDP datasets provided by \cite{shepperd2013data}, and the JIT datasets provided by \cite{kamei2012large}. From the first source, 11 datasets that were initially from various NASA systems, are collected. We use 2 datasets from the second source: Bugzilla and Columba.
 
-We evaluate predictive accuracy using 5-fold cross-validation. The entire 5-fold cross-validation is repeated 5 times with different random subsets. We use the area under receiver operating characteristics (AUC-ROC) as the performance measure, and use the Scott-Knott test to partition the predictors into statistically distinct ranks at a significance level of 5\%. We rank predictors using a double Scott-Knott test. At the first level, the Scott-Knott test is performed on each dataset. At the second level, we run the test on the results of the first level to find the statistically distinct ranks of the predictors.
+We evaluate predictive accuracy using 5-fold cross-validation. The entire 5-fold cross-validation is repeated 5 times with different random subsets. We use the area under receiver operating characteristics (AUC-ROC) as the performance measure, and use the Scott-Knott test \cite{jelihovschi2014scottknott} to partition the predictors into statistically distinct ranks at a significance level of 5\%. We rank predictors using a double Scott-Knott test. At the first level, the Scott-Knott test is performed on each dataset. At the second level, we run the test on the results of the first level to find the statistically distinct ranks of the predictors.
 
 To evaluate interpretability, we use Lipton's criteria: model transparency (can a user understand the model?), component transparency (can a user understand each component?), and algorithmic transparency (is the algorithm deterministic?).
 
 \section{Results}
+
+\subsection{How accurate are current defect predictors?}
+The AUC-ROC values vary considerably among classifiers and datasets, and even among different subsets in 5-fold cross-validation.
+
+\begin{figure}
+\includegraphics[width=0.4\textwidth]{fig3.png}
+\caption{Result of second Scott-Knott test on RFRs of the first Scott-Knott tests}
+\label{fig:3}
+\end{figure}
+
+Figure \ref{fig:3} gives the result of the second Scott-Knott test on the reversed fractional ranks (RFRs) of the first Scott-Knott tests. Classifiers are sorted in descending order of mean RFR.
+
+\subsection{How can we assess the interpretability of classifiers?}
+
+We assume the interpretability of the classifiers is ranked by the number of ``Yes" counts to the qualitative indicators discussed, and an RFR is calculated based on this. Rule-based classifiers score the highest. Naive Bayes tree-based models get a Yes on the first and third questions, and SNB gets a Yes on the first two.
+
+\subsection{How can we balance the trade-off between accuracy and interpretability?}
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.25]{fig4.png}
+\caption{Scatterplot of RFRs of accuracy and interpretability}
+\label{fig:4}
+\end{figure}
+
+We combine the results of the first two with a scatter plot of the RFRs. The diagonal line $y=1-x$ is the typical belief of the trade-off between accuracy and interpretability. 
+
+Clearly, from Figure \ref{fig:4}, SNB being in the top-right, achieves a high interpretability as well as accuracy.
 
 \bibliographystyle{plain}
 \bibliography{cite}

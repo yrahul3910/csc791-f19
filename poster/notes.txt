@@ -1,0 +1,6 @@
+double Scott-Knott test
+make notes in Algorithm 1 (Fig 3 in orig paper)
+NB issues:
+	* zero-freq b/w dep and ind var--Laplace smoothing
+	* numbers--use prior distribution
+	* post-processing
