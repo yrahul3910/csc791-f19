@@ -14,8 +14,7 @@ protected:
     std::string text;
 
 public:
-    virtual void operator+=(double val) {}
-    virtual void operator+=(char val) {}
+    virtual void operator+=(std::string val) {}
     virtual void print() {}
 
     Col()

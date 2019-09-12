@@ -20,9 +20,59 @@ class Tbl
     // from https://stackoverflow.com/a/8777747
     std::vector<std::unique_ptr<Col>> cols;
 
-    std::vector<std::vector<double>> table;
+    std::vector<std::vector<std::string>> table;
     std::vector<std::string> headers;
     std::vector<int> skip_indices;
+
+    std::vector<size_t> goals, xs, nums, syms, w;
+
+    // Helper functions
+    void remove_comments(std::string &line)
+    {
+        // Ignore comments
+        size_t comment_pos;
+        if ((comment_pos = line.find("#")) != std::string::npos)
+            line = line.substr(0, comment_pos);
+    }
+
+    bool tokenize_header(const std::string &line)
+    {
+        if (!line.empty() && line.find_first_not_of(' ') != std::string::npos)
+        {
+            // We found it!
+            boost::char_separator<char> sep(", ");
+            boost::tokenizer<boost::char_separator<char>> tok(line, sep);
+
+            for (auto it = tok.begin(); it != tok.end(); it++)
+                headers.push_back(*it);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    std::vector<std::string> tokenize_line(const std::string &line)
+    {
+        std::vector<std::string> values;
+        boost::char_separator<char> sep(", ");
+        boost::tokenizer<boost::char_separator<char>> tok(line, sep);
+
+        // Read all tokens in the line, but discard commas and spacing
+        for (auto it = tok.begin(); it != tok.end(); it++)
+        {
+            std::string val;
+
+            // If ?, we replace it with 0 for now
+            if (*it == "?")
+                val = "";
+            else
+                val = *it;
+            values.push_back(val);
+        }
+
+        return values;
+    }
 
 public:
     /**
@@ -54,17 +104,10 @@ public:
         while (!fin.eof())
         {
             std::getline(fin, line);
-            if (!line.empty() && line.find_first_not_of(' ') != std::string::npos)
-            {
-                // We found it!
-                boost::char_separator<char> sep(", ");
-                boost::tokenizer<boost::char_separator<char>> tok(line, sep);
+            remove_comments(line);
 
-                for (auto it = tok.begin(); it != tok.end(); it++)
-                    headers.push_back(*it);
-
+            if (tokenize_header(line))
                 break;
-            }
         }
 
         // Check for EOF
@@ -79,27 +122,14 @@ public:
         int line_no = 1;
         while (std::getline(fin, line))
         {
+            remove_comments(line);
+
             ++line_no;
             // Check for blank lines
             if (line.empty() || line.find_first_not_of(' ') == std::string::npos)
                 continue;
 
-            std::vector<double> values;
-            boost::char_separator<char> sep(", ");
-            boost::tokenizer<boost::char_separator<char>> tok(line, sep);
-
-            // Read all tokens in the line, but discard commas and spacing
-            for (auto it = tok.begin(); it != tok.end(); it++)
-            {
-                double val;
-
-                // If ?, we replace it with 0 for now
-                if (*it == "?")
-                    val = 0;
-                else
-                    val = std::stod(*it);
-                values.push_back(val);
-            }
+            std::vector<std::string> values = tokenize_line(line);
 
             // Check that the row contained the right number of items
             if (values.size() != headers.size())
@@ -109,7 +139,6 @@ public:
                 continue;
             }
 
-            rows.push_back(Row(values));
             table.push_back(values);
         }
 
@@ -133,7 +162,7 @@ public:
         for (int index : q_pos)
         {
             std::for_each(table.begin(), table.end(),
-                          [&](std::vector<double> &row) {
+                          [&](std::vector<std::string> &row) {
                               row.erase(std::next(row.begin(), index));
                           });
         }
@@ -146,13 +175,43 @@ public:
         */
         for (int index : q_pos)
             headers.erase(std::next(headers.begin(), index));
+        
+        // Build rows
+        for (std::vector<std::string> row : table)
+            rows.push_back(Row(row));
 
         // Create columns
-        for (std::string x : headers)
+        for (int i = 0; i < headers.size(); i++)
         {
+            std::string x = headers[i];
+
             // We don't need to check for the header containing ? here
             // since we've removed those columns and headers already.
-            cols.emplace_back(new Num(x));
+            if (x.find("<") != std::string::npos ||
+                x.find(">") != std::string::npos ||
+                x.find("$") != std::string::npos)
+            {
+                cols.emplace_back(new Num(x));
+                nums.push_back(i);
+            }
+            else
+            {
+                cols.emplace_back(new Sym(x));
+                syms.push_back(i);
+            }
+
+            // We may as well update the xs, syms, nums, etc. columns here
+            if (x.find("<") != std::string::npos ||
+                x.find(">") != std::string::npos ||
+                x.find("!") != std::string::npos)
+            {
+                goals.push_back(i);
+            }
+            else
+                xs.push_back(i);
+
+            if (x.find("<") != std::string::npos)
+                w.push_back(i);
         }
 
         // Populate values
@@ -179,6 +238,27 @@ public:
             std::cout << "|  " << i + 1 << "\n";
             rows[i].print();
         }
+
+        std::cout << "t.my\n";
+        std::cout << "|  goals\n";
+        for (size_t idx : goals)
+            std::cout << "|  |  " << idx + 1 << "\n";
+
+        std::cout << "|  nums\n";
+        for (size_t idx : nums)
+            std::cout << "|  |  " << idx + 1 << "\n";
+
+        std::cout << "|  syms\n";
+        for (size_t idx : syms)
+            std::cout << "|  |  " << idx + 1 << "\n";
+
+        std::cout << "|  w\n";
+        for (size_t idx : w)
+            std::cout << "|  |  " << idx + 1 << ": -1\n";
+
+        std::cout << "|  xs\n";
+        for (size_t idx : xs)
+            std::cout << "|  |  " << idx + 1 << "\n";
     }
 };
 

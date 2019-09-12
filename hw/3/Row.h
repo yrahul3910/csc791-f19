@@ -6,12 +6,12 @@
 
 class Row
 {
-    std::vector<double> cells;
-    std::vector<double> cooked;
+    std::vector<std::string> cells;
+    std::vector<std::string> cooked;
     int dom = 0;
 
 public:
-    Row(std::vector<double> v) : cells(v) {}
+    Row(std::vector<std::string> v) : cells(v) {}
     void print()
     {
         std::cout << "|  |  cells\n";

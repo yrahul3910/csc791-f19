@@ -18,13 +18,11 @@ public:
         mean = 0;
         n = 0;
         M2 = 0;
-        col = ++count;
     }
 
     Num(std::string t)
     {
         text = t;
-        col = ++count;
     }
 
     // Returns sample sd
@@ -50,8 +48,10 @@ public:
      *
      * @param val - The new value
      */
-    void operator+=(double val) override
+    void operator+=(std::string s) override
     {
+        double val = std::stod(s);
+
         // Workaround for the case where ? is given (and replaced by a 0).
         if (val == 0)
             return;
