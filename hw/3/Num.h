@@ -29,8 +29,8 @@ public:
     {
         text = t;
 
-        low = std::numeric_limits<double>::min();
-        hi = std::numeric_limits<double>::max();
+        low = std::numeric_limits<double>::max();
+        hi = std::numeric_limits<double>::min();
     }
 
     // Returns sample sd
