@@ -9,6 +9,7 @@
 #include <fstream>
 #include <numeric>
 #include <sstream>
+#include <limits>
 #include <memory>
 #include <boost/tokenizer.hpp>
 #include <experimental/iterator>
@@ -46,6 +47,7 @@ class Num : public Col
     double M2; // M_{2, n} from Wikipedia
     int n;     // Number of elements
     double sd;
+    double low, hi;
 
 public:
     Num()
@@ -54,12 +56,18 @@ public:
         n = 0;
         M2 = 0;
         col = ++count;
+
+        low = std::numeric_limits<double>::min();
+        hi = std::numeric_limits<double>::max();
     }
 
     Num(std::string t)
     {
         text = t;
         col = ++count;
+
+        low = std::numeric_limits<double>::max();
+        hi = std::numeric_limits<double>::min();
     }
 
     // Returns sample sd
@@ -90,6 +98,9 @@ public:
         // Workaround for the case where ? is given (and replaced by a 0).
         if (val == 0)
             return;
+        
+        if (val > hi) hi = val;
+        if (val < low) low = val;
 
         n++;
 
@@ -125,6 +136,12 @@ public:
     {
         std::cout << "|  |  ";
         std::cout << "col: " << col << "\n";
+
+        std::cout << "|  |  ";
+        std::cout << "hi: " << hi << "\n";
+
+        std::cout << "|  |  ";
+        std::cout << "low: " << low << "\n";
 
         std::cout << "|  |  ";
         std::cout << "m2: " << M2 << "\n";
@@ -264,7 +281,6 @@ public:
                 continue;
             }
 
-            rows.push_back(Row(values));
             table.push_back(values);
         }
 
@@ -301,6 +317,9 @@ public:
         */
         for (int index : q_pos)
             headers.erase(std::next(headers.begin(), index));
+        
+        for (std::vector<double> values : table)
+            rows.push_back(Row(values));
 
         // Create columns
         for (std::string x : headers)

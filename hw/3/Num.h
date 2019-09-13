@@ -4,6 +4,7 @@
 #include "Col.h"
 #include <iostream>
 #include <cmath>
+#include <limits>
 
 class Num : public Col
 {
@@ -11,6 +12,7 @@ class Num : public Col
     double M2; // M_{2, n} from Wikipedia
     int n;     // Number of elements
     double sd;
+    double low, hi;
 
 public:
     Num()
@@ -18,11 +20,17 @@ public:
         mean = 0;
         n = 0;
         M2 = 0;
+
+        low = std::numeric_limits<double>::max();
+        hi = std::numeric_limits<double>::min();
     }
 
     Num(std::string t)
     {
         text = t;
+
+        low = std::numeric_limits<double>::min();
+        hi = std::numeric_limits<double>::max();
     }
 
     // Returns sample sd
@@ -51,6 +59,9 @@ public:
     void operator+=(std::string s) override
     {
         double val = std::stod(s);
+
+        if (val > hi) hi = val;
+        if (val < low) low = val;
 
         // Workaround for the case where ? is given (and replaced by a 0).
         if (val == 0)
@@ -90,6 +101,12 @@ public:
     {
         std::cout << "|  |  ";
         std::cout << "col: " << col << "\n";
+
+        std::cout << "|  |  ";
+        std::cout << "hi: " << hi << "\n";
+
+        std::cout << "|  |  ";
+        std::cout << "low: " << low << "\n";
 
         std::cout << "|  |  ";
         std::cout << "m2: " << M2 << "\n";

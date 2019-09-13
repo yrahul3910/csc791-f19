@@ -89,14 +89,14 @@ public:
         // Ensure it was successful
         if (!fin.is_open())
         {
-            std::cout << "Exception: Failed to open file.\n";
+            std::cerr << "Exception: Failed to open file.\n";
             return;
         }
 
         // Ensure non-empty file
         if (fin.eof())
         {
-            std::cout << "Exception: Empty file.\n";
+            std::cerr << "Exception: Empty file.\n";
             return;
         }
 
@@ -114,7 +114,7 @@ public:
         // In an ideal-world, we wouldn't have to idiot-proof software to this extent, good grief.
         if (fin.eof())
         {
-            std::cout << "Exception: CSV only contains header line.\n";
+            std::cerr << "Exception: CSV only contains header line.\n";
             return;
         }
 
@@ -134,8 +134,8 @@ public:
             // Check that the row contained the right number of items
             if (values.size() != headers.size())
             {
-                std::cout << "Exception: at line " << line_no << "\n";
-                std::cout << "Message: Rows with missing or extra values, skipping.\n";
+                std::cerr << "Exception: at line " << line_no << "\n";
+                std::cerr << "Message: Rows with missing or extra values, skipping.\n";
                 continue;
             }
 
