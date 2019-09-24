@@ -69,23 +69,48 @@ class Tbl
             else
                 val = *it;
             values.push_back(val);
-        }
+        }   
 
         return values;
     }
 
 public:
-    Sym<>& get_classification_column() const
+    Sym<> &get_classification_column() const
     {
         if (goals.size() == 0)
             throw "Error: No goals\n";
 
         // Assume the last goal is our target
         size_t col_index = goals[goals.size() - 1];
-
-        Sym<>& ptr = dynamic_cast<Sym<>&>(*cols[col_index].get());
-
+        Sym<> &ptr = dynamic_cast<Sym<> &>(*cols[col_index].get());
         return ptr;
+    }
+
+    int size() const
+    {
+        return rows.size();
+    }
+
+    void add_row(std::string line)
+    {
+        remove_comments(line);
+
+        // Check for blank lines
+        if (line.empty() || line.find_first_not_of(' ') == std::string::npos)
+            return;
+
+        std::vector<std::string> values = tokenize_line(line);
+
+        // Check that the row contained the right number of items
+        // Since classifiers using this function won't add a header, we
+        // need a different check.
+        if (table.size() == 0 || values.size() != table[0].size())
+        {
+            std::cerr << "Exception: Rows with missing or extra values, skipping.\n";
+            return;
+        }
+
+        table.push_back(values);
     }
 
     /**
