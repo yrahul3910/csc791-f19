@@ -18,7 +18,7 @@ class Tbl
 {
     std::vector<Row> rows;
     // from https://stackoverflow.com/a/8777747
-    std::vector<std::unique_ptr<Col>> cols;
+    std::vector<std::shared_ptr<Col>> cols;
 
     std::vector<std::vector<std::string>> table;
     std::vector<std::string> headers;
@@ -69,7 +69,7 @@ class Tbl
             else
                 val = *it;
             values.push_back(val);
-        }   
+        }
 
         return values;
     }
@@ -91,6 +91,104 @@ public:
         return rows.size();
     }
 
+    std::vector<int> get_skip_columns() const
+    {
+        return skip_indices;
+    }
+
+    std::vector<int> get_nums() const
+    {
+        return nums;
+    }
+
+    std::vector<int> get_syms() const
+    {
+        return syms;
+    }
+
+    double get_column_likelihood(int idx, double val) const
+    {
+        Num& ptr = dynamic_cast<Num&>(*cols[idx].get());
+        double mu = ptr.get_mean();
+        double sd = std::sqrt(ptr.get_var());
+
+        return std::exp(-std::pow(val - mu, 2) / (2 * sd * sd)) / (sd * std::sqrt(2 * 3.14159));
+    }
+
+    double get_column_likelihood(int idx, std::string val) const
+    {
+        Sym<>& ptr = dynamic_cast<Sym<>&>(*cols[idx].get());  
+        return ptr.get_likelihood(val);
+    }
+
+    /**
+     * Populates the headers, skip_indices, cols, nums, syms, goals, xs, and 
+     * w member variables.
+     */
+    void add_header(std::string line)
+    {
+        // Check if header already exists
+        if (headers.size() != 0) return;
+
+        remove_comments(line);
+        tokenize_header(line);
+
+        // Deal with ? columns
+        // Uses the same idea as https://stackoverflow.com/a/12990554
+        std::vector<int> q_pos(headers.size());
+        std::iota(q_pos.begin(), q_pos.end(), 0);
+        auto it = std::copy_if(q_pos.begin(), q_pos.end(), q_pos.begin(),
+                               [=](int index) {
+                                   return headers[index].find('?') != std::string::npos;
+                               });
+        q_pos.resize(std::distance(q_pos.begin(), it));
+
+        // Indices must be in reverse sorted order when removing elements
+        std::reverse(q_pos.begin(), q_pos.end());
+
+        // Copy the result to our private member variable
+        skip_indices = q_pos;
+
+        // Create columns
+        for (int i = 0; i < headers.size(); i++)
+        {
+            std::string x = headers[i];
+
+            // We don't need to check for the header containing ? here
+            // since we've removed those columns and headers already.
+            if (x.find("<") != std::string::npos ||
+                x.find(">") != std::string::npos ||
+                x.find("$") != std::string::npos)
+            {
+                cols.emplace_back(new Num(x));
+                nums.push_back(i);
+            }
+            else
+            {
+                cols.emplace_back(new Sym<>(x));
+                syms.push_back(i);
+            }
+
+            // We may as well update the xs, syms, nums, etc. columns here
+            if (x.find("<") != std::string::npos ||
+                x.find(">") != std::string::npos ||
+                x.find("!") != std::string::npos)
+            {
+                goals.push_back(i);
+            }
+            else
+                xs.push_back(i);
+
+            if (x.find("<") != std::string::npos)
+                w.push_back(i);
+        }
+    }
+
+    /**
+     * Adds a row to the table. This is meant to be used by online
+     * classifiers. Make sure the add_header() function is called
+     * before this. Do not use this with read().
+     */
     void add_row(std::string line)
     {
         remove_comments(line);
@@ -104,13 +202,31 @@ public:
         // Check that the row contained the right number of items
         // Since classifiers using this function won't add a header, we
         // need a different check.
-        if (table.size() == 0 || values.size() != table[0].size())
+        if (table.size() != 0 && values.size() != table[0].size())
         {
             std::cerr << "Exception: Rows with missing or extra values, skipping.\n";
             return;
         }
 
+        // Remove the columns that we need to skip...
+        for (int index : skip_indices)
+            values.erase(std::next(values.begin(), index));
+
+        // ...then add the row to the table...
         table.push_back(values);
+
+        // ...and to the rows vector...
+        rows.push_back(Row(values));
+
+        // ...and finally to the cols vector
+        // Populate values
+        for (int i = 0; i < values.size(); i++)
+        {
+            if (std::find(skip_indices.begin(), skip_indices.end(), i) != skip_indices.end())
+                continue;
+            
+            *(cols[i]) += values[i];
+        }
     }
 
     /**

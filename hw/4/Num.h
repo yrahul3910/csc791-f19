@@ -33,13 +33,12 @@ public:
         hi = std::numeric_limits<double>::min();
     }
 
-    // Returns sample sd
+    // Returns sample var
     double get_var()
     {
         if (n < 2)
             return 0;
 
-        sd = std::sqrt(M2 / (n - 1));
         return M2 / (n - 1);
     }
 

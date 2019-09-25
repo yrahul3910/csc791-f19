@@ -48,6 +48,11 @@ public:
         most = pair.second;
     }
 
+    double get_likelihood(std::string val)
+    {
+        return static_cast<double>(counts[val] + 1) / (n + counts.size());
+    }
+
     double SymEnt()
     {
         if (n == 0)
