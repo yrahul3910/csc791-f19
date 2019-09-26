@@ -6,10 +6,20 @@
 
 class ZeroRClassifier
 {
-    const Tbl& tbl;
+    Tbl tbl;
 
 public:
-    ZeroRClassifier(const Tbl& tbl) : tbl(tbl) { }
+    ZeroRClassifier() = default;
+
+    void add_header(std::string line)
+    {
+        tbl.add_header(line);
+    }
+
+    void add_row(std::string line)
+    {
+        tbl.add_row(line);
+    }
 
     std::string classify()
     {

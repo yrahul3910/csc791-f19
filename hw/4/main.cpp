@@ -6,14 +6,15 @@
 #include <string>
 
 int main() {
-    NaiveBayes nb;
+    ZeroRClassifier nb;
 
-    std::ifstream fin("weathernon.csv");
+    std::ifstream fin("diabetes.csv");
     std::string line;
 
+    // Read header
     std::getline(fin, line);
     nb.add_header(line);
-
+    
     Abcd<std::string> report;
 
     // Read 4 rows
@@ -26,7 +27,7 @@ int main() {
     while (!fin.eof())
     {
         std::getline(fin, line);
-        std::string pred = nb.classify(line);
+        std::string pred = nb.classify();
         nb.add_row(line);
 
         std::string target = line.substr(line.find_last_of(',') + 1);
