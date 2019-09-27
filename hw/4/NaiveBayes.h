@@ -27,6 +27,16 @@ public:
         header_line = line;
     }
 
+    void print_num_stats()
+    {
+        for (const std::pair<std::string, Tbl>& pair : class_tables)
+        {
+            std::cout << pair.first << ":\n";
+            pair.second.print_num_stats();
+            std::cout << "\n";
+        }
+    }
+
     void add_row(std::string line)
     {
         std::vector<std::string> tokens;
@@ -58,7 +68,7 @@ public:
 
         std::string most_likely_class = "";
         double highest_log_posterior = -1e4;
-        //std::cout << "Posteriors: ";
+
         for (const std::pair<std::string, Tbl>& pair : class_tables)
         {
             // Compute the prior
@@ -68,7 +78,6 @@ public:
                                                  return prev + pair2.second.size();
                                              });
             double prior = static_cast<double>(pair.second.size()) / total_rows;
-            //std::cout << "(prior=" << prior << ") ";
 
             // Compute the likelihood
             double log_likelihood = 0;

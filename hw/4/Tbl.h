@@ -121,6 +121,23 @@ public:
         return ptr.get_likelihood(val);
     }
 
+    void print_num_stats() const
+    {
+        std::cout << "[";
+        for (int idx : nums)
+        {
+            Num& ptr = dynamic_cast<Num&>(*cols[idx].get());
+            std::cout << ptr.get_mean() << ", ";
+        }
+        std::cout << "]\n[";
+        for (int idx : nums)
+        {
+            Num& ptr = dynamic_cast<Num&>(*cols[idx].get());
+            std::cout << ptr.get_var() << ", ";
+        }
+        std::cout << "]";
+    }
+
     /**
      * Populates the headers, skip_indices, cols, nums, syms, goals, xs, and 
      * w member variables.

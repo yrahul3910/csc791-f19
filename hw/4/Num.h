@@ -63,7 +63,7 @@ public:
         if (val < low) low = val;
 
         // Workaround for the case where ? is given (and replaced by a 0).
-        if (val == 0)
+        if (val == -999)
             return;
 
         n++;
