@@ -1,44 +1,18 @@
-#include "Tbl.h"
-#include "ZeroRClassifier.h"
-#include "NaiveBayes.h"
-#include "Abcd.h"
-#include <fstream>
-#include <string>
+#include "Divide.h"
+#include "Num.h"
+#include <vector>
 
 int main() {
-    NaiveBayes nb;
+    std::vector<double> x = { 0.006718212205620061, 0.042371686846861635, 0.038188730948830706, 0.012753451286971085, 0.02477175435459705, 0.22247455323943693, 0.23257964863613817, 0.23943616755677566, 0.20469297933871175, 0.20141737382610034, 0.4417882551959935, 0.4216383533952527, 0.43811400412289714, 0.40010530266755556, 0.4222693597027401, 0.6360770016170391, 0.6114381110635226, 0.647263534777696, 0.6450713728805741, 0.6015294991516776, 0.8012722930496731, 0.8270706236396749, 0.8469574581389255, 0.8190602118844107, 0.8108299698565307 };
+    std::vector<double> y = { 0.042211657558271734, 0.0029040787574867947, 0.022169166627303505, 0.04378875936505721, 0.04958122413818507, 0.023308445025757265, 0.02308665415409843, 0.02187810373376886, 0.04596034657377336, 0.02897816145904856, 0.40214897052659093, 0.4837577975662573, 0.45564543226524334, 0.4642294362932446, 0.41859062658947177, 0.8992543412176066, 0.885994652879529, 0.8120889959805807, 0.8332695185360129, 0.8721484407583269, 0.871119176969528, 0.893644058679946, 0.8422106999961416, 0.8830035693274327, 0.8670305566414072 };
 
-    std::ifstream fin("diabetes.csv");
-    std::string line;
+    Divide<> div(x, y);
+    std::vector<Num> ranges = div.get_ranges();
 
-    // Read header
-    std::getline(fin, line);
-    nb.add_header(line);
-    
-    Abcd<std::string> report;
-
-    // Read 4 rows
-    for (int i = 0; i < 20 && !fin.eof(); i++)
+    for (Num num : ranges)
     {
-        std::getline(fin, line);
-        nb.add_row(line);
+        std::cout << "x.n\t" << num.size() << " | x.lo\t" << num.get_low() << " | x.hi\t" << num.get_high() << "\n";
     }
-
-    std::cout << "[";
-    while (!fin.eof())
-    {
-        std::getline(fin, line);
-        std::string pred = nb.classify(line);
-        std::cout << "'" << pred << "'";
-        nb.add_row(line);
-
-        std::string target = line.substr(line.find_last_of(',') + 1);
-        report.add(target, pred);
-    }
-    std::cout << "]";
-
-    report.report();
-    nb.print_num_stats();
 
     return 0;
 }

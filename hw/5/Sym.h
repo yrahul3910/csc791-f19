@@ -12,7 +12,6 @@
 template <typename T = std::string>
 class Sym : public Col
 {
-    int n;
     T mode;
     int most;
     std::map<T, size_t> counts; // counts of each symbol
@@ -40,6 +39,18 @@ public:
     {
         ++n;
         ++counts[val];
+
+        pair_type pair = *std::max_element(counts.begin(),
+                                           counts.end(),
+                                           [](const pair_type &p1, const pair_type &p2) { return p1.second < p2.second; });
+        mode = pair.first;
+        most = pair.second;
+    }
+
+    void operator-=(std::string val) override
+    {
+        --n;
+        --counts[val];
 
         pair_type pair = *std::max_element(counts.begin(),
                                            counts.end(),
@@ -76,6 +87,11 @@ public:
                                          [](double old, double prob) { return old - prob * std::log2(prob); });
 
         return entropy;
+    }
+
+    double variety() override
+    {
+        return SymEnt();
     }
 
     void print() override

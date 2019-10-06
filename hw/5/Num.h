@@ -10,7 +10,6 @@ class Num : public Col
 {
     double mean;
     double M2; // M_{2, n} from Wikipedia
-    int n;     // Number of elements
     double sd;
     double low, hi;
 
@@ -33,6 +32,16 @@ public:
         hi = std::numeric_limits<double>::min();
     }
 
+    double get_low() const
+    {
+        return low;
+    }
+
+    double get_high() const
+    {
+        return hi;
+    }
+
     // Returns sample var
     double get_var()
     {
@@ -40,6 +49,11 @@ public:
             return 0;
 
         return M2 / (n - 1);
+    }
+
+    double variety() override
+    {
+        return std::sqrt(get_var());
     }
 
     // Returns mean
@@ -79,8 +93,10 @@ public:
      *
      * @param val - The new value
      */
-    void operator-=(double val)
+    void operator-=(std::string s) override
     {
+        double val = std::stod(s);
+
         if (n < 2)
         {
             n = 0;
