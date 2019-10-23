@@ -47,6 +47,12 @@ public:
         most = pair.second;
     }
 
+    bool isGreater(Col& other, double epsilon) override
+    {
+        Sym<>& col = dynamic_cast<Sym<>&>(other);
+        return (this->get_mode() != col.get_mode());
+    }
+
     void operator-=(std::string val) override
     {
         --n;

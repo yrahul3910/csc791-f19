@@ -19,6 +19,7 @@ public:
     virtual void operator-=(std::string val) {}
     virtual void print() {}
     virtual double variety() = 0;
+    virtual bool isGreater(Col& other, double epsilon) = 0;
 
     Col()
     {

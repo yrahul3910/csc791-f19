@@ -56,6 +56,12 @@ public:
         return std::sqrt(get_var());
     }
 
+    bool isGreater(Col& other, double epsilon) override
+    {
+        Num& col = dynamic_cast<Num&>(other);
+        return std::abs(this->get_mean() - col.get_mean() >= epsilon);
+    }
+
     // Returns mean
     double get_mean()
     {
