@@ -20,6 +20,16 @@ class Divide
     std::vector<ColType> ranges;
     double epsilon;
 
+    bool isDifferent(double x, double y, double epsilon)
+    {
+        return std::abs(x - y) >= epsilon;
+    }
+
+    bool isDifferent(std::string x, std::string y, double epsilon)
+    {
+        return x != y;
+    }
+
     std::string get_string(std::string x)
     {
         return x;
@@ -89,8 +99,8 @@ public:
                     continue;
 
                 if (right.isGreater(left, epsilon) &&
-                    after != start &&
-                    stop != now)
+                    isDifferent(after, start, epsilon) &&
+                    isDifferent(stop, now, epsilon))
                 {
                     int n = left.size() + right.size();
                     double expect = left.size() / n * left.variety() + right.size() / n * right.variety();
