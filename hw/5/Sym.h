@@ -90,7 +90,7 @@ public:
         double entropy = std::accumulate(probabilities.begin(),
                                          probabilities.end(),
                                          0.0,
-                                         [](double old, double prob) { return old - prob * std::log2(prob); });
+                                         [](double old, double prob) { return prob == 0 ? 0 : old - prob * std::log2(prob); });
 
         return entropy;
     }
